@@ -15,3 +15,7 @@ class MultipleDestinationsError(OnfleetError):
     def __init__(self, options, *args, **kwargs):
         self.options = options
         super(MultipleDestinationsError, self).__init__(*args, **kwargs)
+
+
+class OnfleetResourceNotFound(OnfleetError):
+    """Error for when onfleet 404s."""

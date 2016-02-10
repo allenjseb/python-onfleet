@@ -1,10 +1,11 @@
 import datetime
+import httplib
 import json
 import re
 import requests
 from . import models
 from . import utils
-from .exceptions import OnfleetError, MultipleDestinationsError
+from .exceptions import OnfleetError, OnfleetResourceNotFound, MultipleDestinationsError
 
 # This regex takes the returned onfleet string and gets the list that onfleet
 # returns as a string literal, i.e.
@@ -217,6 +218,14 @@ class OnfleetCall(object):
                             error_code,
                             error_cause,
                         )
+
+                if response.status_code == httplib.NOT_FOUND:
+                    raise OnfleetResourceNotFound(
+                        error_message,
+                        error_type,
+                        error_code,
+                        error_cause,
+                    )
 
                 raise OnfleetError(error_message, error_type, error_code,
                     error_cause)
