@@ -5,7 +5,8 @@ import re
 import requests
 from . import models
 from . import utils
-from .exceptions import OnfleetError, OnfleetResourceNotFound, MultipleDestinationsError
+from .exceptions import (OnfleetError, OnfleetResourceNotFound,
+    OnfleetRatelimitExceeded, MultipleDestinationsError)
 
 # This regex takes the returned onfleet string and gets the list that onfleet
 # returns as a string literal, i.e.
@@ -197,9 +198,21 @@ class OnfleetCall(object):
                 # horrible naming conventions
                 error_type = json_response['code']
                 error_data = json_response['message']
-                error_cause = error_data['cause']
-                error_code = error_data['error']
-                error_message = error_data['message']
+
+                # Onfleet provides virtually zero consistency with the format
+                # returned by their API. In some cases, error_data is a dict
+                # with more information; in other cases, it is just a string.
+                if isinstance(error_data, dict):
+                    error_cause = error_data['cause']
+                    error_code = error_data['error']
+                    error_message = error_data['message']
+                elif response.status_code == 429:
+                    raise OnfleetRatelimitExceeded(
+                        error_data,
+                        error_type,
+                        None,
+                        None,
+                    )
 
                 # error_cause is a string when there is a geocoding error,
                 # BUT it's a dict in many other cases.... We only want to try

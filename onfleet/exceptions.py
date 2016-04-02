@@ -19,3 +19,7 @@ class MultipleDestinationsError(OnfleetError):
 
 class OnfleetResourceNotFound(OnfleetError):
     """Error for when onfleet 404s."""
+
+
+class OnfleetRatelimitExceeded(OnfleetError):
+    """Error for when Onfleet's ratelimit is encountered."""
