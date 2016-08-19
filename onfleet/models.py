@@ -98,8 +98,8 @@ class Task(object):
     def __init__(self, destination, recipients, notes=None, state=None,
             id=None, created_on=None, updated_on=None, merchant=None,
             executor=None, pickup_task=False, tracking_url=None,
-            worker=None,
-            dependencies=None, complete_after=None, complete_before=None):
+            worker=None, dependencies=None, complete_after=None,
+            complete_before=None, delay_time=None):
         self.id = id
         self.created_on = created_on
         self.updated_on = updated_on
@@ -114,6 +114,7 @@ class Task(object):
         self.complete_before = complete_before
         self.dependencies = dependencies
         self.worker = worker
+        self.delay_time = delay_time
 
     def __repr__(self):
         return "<Task id='{}'>".format(self.id)
@@ -140,6 +141,9 @@ class Task(object):
 
         if obj['completeBefore']:
             task.complete_before = utils.from_unix_time(obj['completeBefore'])
+
+        if obj['delayTime']:
+            task.delay_time = obj['delayTime']
 
         return task
 
