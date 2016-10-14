@@ -103,6 +103,7 @@ class ComplexEncoder(json.JSONEncoder):
                 'dependencies': 'dependencies',
                 'complete_after': 'completeAfter',
                 'complete_before': 'completeBefore',
+                'container': 'container',
             }
         elif isinstance(obj, models.Recipient):
             payload = {
@@ -189,7 +190,9 @@ class OnfleetCall(object):
             if component in self.components:
                 parse_as = parser
 
-        if method.lower() != 'delete':
+        if response.text:
+            # If the response is not falsy.
+
             json_response = response.json()
 
             if 'code' in json_response:
