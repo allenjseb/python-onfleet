@@ -146,7 +146,7 @@ class Task(object):
         if obj['delayTime']:
             task.delay_time = obj['delayTime']
 
-        if obj['container']:
+        if 'container' in obj:
             task.container = obj['container']
 
         return task
