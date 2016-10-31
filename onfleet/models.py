@@ -97,8 +97,8 @@ class Task(object):
 
     def __init__(self, destination, recipients, notes=None, state=None,
             id=None, created_on=None, updated_on=None, merchant=None,
-            executor=None, pickup_task=False, tracking_url=None,
-            worker=None, dependencies=None, complete_after=None,
+            executor=None, pickup_task=False, tracking_url=None, worker=None,
+            dependencies=None, container=None, complete_after=None,
             complete_before=None, delay_time=None):
         self.id = id
         self.created_on = created_on
@@ -113,6 +113,7 @@ class Task(object):
         self.complete_after = complete_after
         self.complete_before = complete_before
         self.dependencies = dependencies
+        self.container = container
         self.worker = worker
         self.delay_time = delay_time
 
@@ -144,6 +145,9 @@ class Task(object):
 
         if obj['delayTime']:
             task.delay_time = obj['delayTime']
+
+        if 'container' in obj:
+            task.container = obj['container']
 
         return task
 
@@ -280,4 +284,3 @@ class Worker(object):
             worker.delay_time = timedelta(seconds=obj['delayTime'])
 
         return worker
-

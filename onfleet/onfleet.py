@@ -103,6 +103,7 @@ class ComplexEncoder(json.JSONEncoder):
                 'dependencies': 'dependencies',
                 'complete_after': 'completeAfter',
                 'complete_before': 'completeBefore',
+                'container': 'container',
             }
         elif isinstance(obj, models.Recipient):
             payload = {
@@ -185,11 +186,15 @@ class OnfleetCall(object):
         }
 
         parse_as = None
+        component_name = ''
         for component, parser in parse_dictionary.iteritems():
             if component in self.components:
                 parse_as = parser
+                component_name = component
 
-        if method.lower() != 'delete':
+        if response.text:
+            # If the response is not falsy.
+
             json_response = response.json()
 
             if 'code' in json_response:
@@ -246,6 +251,13 @@ class OnfleetCall(object):
             if parse_response and parse_as is not None:
                 if isinstance(json_response, list):
                     return map(parse_as.parse, json_response)
+                # Handle pagination case, where Onfleet supplies lastId.
+                elif 'lastId' in json_response:
+                    return {
+                        'lastId': json_response['lastId'],
+                        'results': map(parse_as.parse,
+                            json_response[component_name]),
+                    }
                 else:
                     return parse_as.parse(json_response)
             else:
