@@ -258,6 +258,11 @@ class OnfleetCall(object):
                         'results': map(parse_as.parse,
                             json_response[component_name]),
                     }
+                elif 'all' in self.components:
+                    return {
+                        'results': map(parse_as.parse,
+                            json_response[component_name]),
+                    }
                 else:
                     return parse_as.parse(json_response)
             else:
