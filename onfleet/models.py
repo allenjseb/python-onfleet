@@ -83,8 +83,9 @@ class Recipient(object):
             updated_on=obj['timeLastModified'],
             name=obj['name'],
             phone=obj['phone'],
-            notes=obj['notes']
         )
+        if 'notes' in obj:
+            recipient.notes = obj['notes']
 
         return recipient
 
