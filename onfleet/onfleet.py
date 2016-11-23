@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from builtins import map
 from builtins import object
 import datetime
-import httplib
+import http
 import json
 import re
 import requests
@@ -240,7 +240,7 @@ class OnfleetCall(object):
                             error_cause,
                         )
 
-                if response.status_code == httplib.NOT_FOUND:
+                if response.status_code == http.HTTPStatus.lib.NOT_FOUND:
                     raise OnfleetResourceNotFound(
                         error_message,
                         error_type,
