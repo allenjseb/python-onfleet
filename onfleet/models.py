@@ -1,7 +1,9 @@
 from __future__ import absolute_import
 from builtins import map
 from builtins import object
+from datetime import timedelta
 from . import utils
+
 
 class Organization(object):
     def __init__(self, id=None, created_on=None, updated_on=None, name=None, email=None, timezone=None, country=None, delegatee_ids=None, image=None):
@@ -84,8 +86,9 @@ class Recipient(object):
             updated_on=obj['timeLastModified'],
             name=obj['name'],
             phone=obj['phone'],
-            notes=obj['notes']
         )
+        if 'notes' in obj:
+            recipient.notes = obj['notes']
 
         return recipient
 
@@ -98,8 +101,9 @@ class Task(object):
 
     def __init__(self, destination, recipients, notes=None, state=None,
             id=None, created_on=None, updated_on=None, merchant=None,
-            executor=None, pickup_task=False, tracking_url=None,
-            dependencies=None, complete_after=None, complete_before=None):
+            executor=None, pickup_task=False, tracking_url=None, worker=None,
+            dependencies=None, container=None, complete_after=None,
+            complete_before=None, delay_time=None):
         self.id = id
         self.created_on = created_on
         self.updated_on = updated_on
@@ -113,6 +117,9 @@ class Task(object):
         self.complete_after = complete_after
         self.complete_before = complete_before
         self.dependencies = dependencies
+        self.container = container
+        self.worker = worker
+        self.delay_time = delay_time
 
     def __repr__(self):
         return "<Task id='{}'>".format(self.id)
@@ -132,6 +139,7 @@ class Task(object):
             complete_after=obj['completeAfter'],
             complete_before=obj['completeBefore'],
             dependencies=obj['dependencies'],
+            worker=obj['worker'],
         )
         if obj['completeAfter']:
             task.complete_after = utils.from_unix_time(obj['completeAfter'])
@@ -139,8 +147,11 @@ class Task(object):
         if obj['completeBefore']:
             task.complete_before = utils.from_unix_time(obj['completeBefore'])
 
-        if 'worker' in obj and obj['worker'] is not None:
-            task.worker = obj['worker']
+        if obj['delayTime']:
+            task.delay_time = obj['delayTime']
+
+        if 'container' in obj:
+            task.container = obj['container']
 
         return task
 
@@ -207,7 +218,6 @@ class Vehicle(object):
     BICYCLE = "BICYCLE"
     TRUCK = "TRUCK"
 
-
     def __init__(self, vehicle_type, description=None, license_plate=None, color=None, id=None):
         if vehicle_type not in [Vehicle.CAR, Vehicle.MOTORCYCLE, Vehicle.BICYCLE, Vehicle.TRUCK]:
             raise Exception
@@ -241,13 +251,16 @@ class Vehicle(object):
 
 
 class Worker(object):
-    def __init__(self, name=None, phone=None, team_ids=None, vehicle=None, id=None, tasks=None):
+    def __init__(self, name=None, phone=None, team_ids=None, vehicle=None,
+            id=None, tasks=None, delay_time=None, active_task=None):
         self.id = id
         self.name = name
         self.phone = phone
         self.team_ids = team_ids
         self.vehicle = vehicle
         self.tasks = tasks
+        self.delay_time = delay_time
+        self.active_task = active_task
 
     def __repr__(self):
         return "<Worker name='{}'>".format(self.name)
@@ -258,11 +271,19 @@ class Worker(object):
             id=obj['id'],
             name=obj['name'],
             phone=obj['phone'],
-            vehicle=Vehicle.parse(obj['vehicle'])
+            tasks=obj['tasks'],
         )
+
+        if obj['vehicle']:
+            worker.vehicle = Vehicle.parse(obj['vehicle'])
 
         if 'teams' in obj:
             worker.team_ids = obj['teams']
 
-        return worker
+        if obj['activeTask']:
+            worker.active_task = obj['activeTask']
 
+        if obj['delayTime']:
+            worker.delay_time = timedelta(seconds=obj['delayTime'])
+
+        return worker

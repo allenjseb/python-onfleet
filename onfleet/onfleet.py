@@ -2,14 +2,39 @@ from __future__ import absolute_import
 from builtins import map
 from builtins import object
 import datetime
+import httplib
 import json
+import re
 import requests
 from . import models
 from . import utils
-from .exceptions import OnfleetException, OnfleetDuplicateKeyException
+from .exceptions import (OnfleetError, OnfleetResourceNotFound,
+    OnfleetRatelimitExceeded, MultipleDestinationsError)
+
+# This regex takes the returned onfleet string and gets the list that onfleet
+# returns as a string literal, i.e.
+# "['1252 Howard St, San Francisco, CA', '73 Sumner St, San Francisco, CA']"
+options_re = re.compile(r'Options = (\[.*\])')
+
+
+def parse_options(cause):
+    """Parse the onfleet string for the proposed options."""
+    match = options_re.search(cause)
+    if match:
+        # Onfleet returns a string that contains a list containing strings,
+        # which should be valid JSON. Let's return the options as an actual
+        # python list
+        options_list_as_string = match.group(1)
+        try:
+            return json.loads(options_list_as_string)
+        except ValueError:
+            # Bad JSON, let this fall to return None
+            pass
+    return None
 
 
 ONFLEET_API_ENDPOINT = "https://onfleet.com/api/v2/"
+
 
 class ComplexEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -41,7 +66,7 @@ class ComplexEncoder(json.JSONEncoder):
                 'tasks': 'tasks',
                 'name': 'name',
                 'phone': 'phone',
-                'teams': 'team_ids'
+                'team_ids': 'teams'
             }
         elif isinstance(obj, models.Address):
             payload = {
@@ -81,6 +106,7 @@ class ComplexEncoder(json.JSONEncoder):
                 'dependencies': 'dependencies',
                 'complete_after': 'completeAfter',
                 'complete_before': 'completeBefore',
+                'container': 'container',
             }
         elif isinstance(obj, models.Recipient):
             payload = {
@@ -97,7 +123,6 @@ class ComplexEncoder(json.JSONEncoder):
             }
 
             optional_properties = {'phone': obj.phone}
-
         if payload is None:
             return json.JSONEncoder.default(self, obj)
         else:
@@ -129,6 +154,8 @@ class OnfleetCall(object):
         return self
 
     def __getitem__(self, k):
+        if not k:
+            raise KeyError("You can't retrieve a falsy object!")
         self.components.append(k)
         return self
 
@@ -150,7 +177,6 @@ class OnfleetCall(object):
             data = ComplexEncoder().encode(args[0])
         else:
             data = None
-
         response = fun(url, data=data, params=kwargs, auth=(self.api_key, ''), verify=False)
 
         parse_dictionary = {
@@ -163,26 +189,83 @@ class OnfleetCall(object):
         }
 
         parse_as = None
+        component_name = ''
         for component, parser in parse_dictionary.items():
             if component in self.components:
                 parse_as = parser
+                component_name = component
 
-        if method.lower() != 'delete':
+        if response.text:
+            # If the response is not falsy.
+
             json_response = response.json()
 
             if 'code' in json_response:
-                message = json_response['message']
-                cause = message.get('cause', '')
+                # So presumably this is an error response,
+                # Map these to better python variable names, since onfleet uses
+                # horrible naming conventions
+                error_type = json_response['code']
+                error_data = json_response['message']
 
-                if isinstance(cause, dict) and cause['type'] == 'duplicateKey':
-                    raise OnfleetDuplicateKeyException("{}: {} (value: '{}', key: '{}')" \
-                        .format(message['error'], message['message'], cause['value'], cause['key']))
-                raise OnfleetException("{}: {} ({})" \
-                    .format(message['error'], message['message'], cause))
+                # Onfleet provides virtually zero consistency with the format
+                # returned by their API. In some cases, error_data is a dict
+                # with more information; in other cases, it is just a string.
+                if isinstance(error_data, dict):
+                    error_cause = error_data['cause']
+                    error_code = error_data['error']
+                    error_message = error_data['message']
+                elif response.status_code == 429:
+                    raise OnfleetRatelimitExceeded(
+                        error_data,
+                        error_type,
+                        None,
+                        None,
+                    )
+
+                # error_cause is a string when there is a geocoding error,
+                # BUT it's a dict in many other cases.... We only want to try
+                # to parse options if it's a string
+                if isinstance(error_cause, basestring):
+                    options = parse_options(error_cause)
+
+                    if options:
+                        # If the options regex returned some options, this must be
+                        # a multiple destination issue. This is the only way to
+                        # tell since onfleet doesn't use distinct error codes
+                        raise MultipleDestinationsError(
+                            options,
+                            error_message,
+                            error_type,
+                            error_code,
+                            error_cause,
+                        )
+
+                if response.status_code == httplib.NOT_FOUND:
+                    raise OnfleetResourceNotFound(
+                        error_message,
+                        error_type,
+                        error_code,
+                        error_cause,
+                    )
+
+                raise OnfleetError(error_message, error_type, error_code,
+                    error_cause)
 
             if parse_response and parse_as is not None:
                 if isinstance(json_response, list):
                     return list(map(parse_as.parse, json_response))
+                # Handle pagination case, where Onfleet supplies lastId.
+                elif 'lastId' in json_response:
+                    return {
+                        'lastId': json_response['lastId'],
+                        'results': map(parse_as.parse,
+                            json_response[component_name]),
+                    }
+                elif 'all' in self.components:
+                    return {
+                        'results': map(parse_as.parse,
+                            json_response[component_name]),
+                    }
                 else:
                     return parse_as.parse(json_response)
             else:

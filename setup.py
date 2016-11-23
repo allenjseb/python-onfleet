@@ -9,6 +9,7 @@ __email__ = "dan@lionheartsw.com"
 __license__ = "Apache 2.0"
 
 import unittest
+import io
 import os
 from distutils.cmd import Command
 import re
@@ -18,7 +19,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-with open(os.path.join(os.path.dirname(__file__), "README.rst")) as file:
+with io.open(os.path.join(os.path.dirname(__file__), "README.rst"), encoding='utf-8') as file:
     long_description = file.read()
 
     id_regex = re.compile(r"<\#([\w-]+)>")
@@ -42,6 +43,7 @@ classifiers = [
     "Topic :: Utilities",
     "License :: OSI Approved :: Apache Software License",
 ]
+
 
 class TestCommand(Command):
     user_options = []
@@ -70,6 +72,7 @@ setup(
     long_description=long_description,
     name='onfleet',
     package_data={'': ['LICENSE', 'README.rst']},
+    include_package_data=True,
     packages=['onfleet'],
     url="http://github.com/lionheart/python-onfleet",
     version=__version__,

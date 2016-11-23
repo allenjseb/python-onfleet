@@ -8,7 +8,7 @@ from .models import Vehicle
 from .models import Worker
 from .onfleet import Onfleet
 
-from .exceptions import OnfleetDuplicateKeyException
+from .exceptions import OnfleetError
 
 from .metadata import (
     __author__,
@@ -26,7 +26,7 @@ __all__ = [
     '__license__',
     '__maintainer__',
     '__version__',
-    'OnfleetDuplicateKeyException',
+    'OnfleetError',
     'Organization',
     'Administrator',
     'Recipient',
