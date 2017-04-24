@@ -170,14 +170,16 @@ class Address(object):
 
     @classmethod
     def parse(self, obj):
+        # Sometimes the onfleet API is just broken and returns badly shaped
+        # data. So in those cases just set some items to None.
         address = Address(
             apartment=obj['apartment'],
             state=obj['state'],
             postal_code=obj['postalCode'],
             country=obj['country'],
             city=obj['city'],
-            street=obj['street'],
-            number=obj['number']
+            street=obj.get('street'),
+            number=obj.get('number'),
         )
         return address
 
