@@ -144,7 +144,7 @@ class Task(object):
         if obj['completeBefore']:
             task.complete_before = utils.from_unix_time(obj['completeBefore'])
 
-        if obj['delayTime']:
+        if obj.get('delayTime'):
             task.delay_time = obj['delayTime']
 
         if 'container' in obj:
@@ -283,7 +283,7 @@ class Worker(object):
         if obj['activeTask']:
             worker.active_task = obj['activeTask']
 
-        if obj['delayTime']:
+        if obj.get('delayTime'):
             worker.delay_time = timedelta(seconds=obj['delayTime'])
 
         return worker
