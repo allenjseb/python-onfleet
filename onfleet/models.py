@@ -20,14 +20,14 @@ class Organization(object):
     @classmethod
     def parse(self, obj):
         return Organization(
-            id=obj['id'],
-            created_on=obj['timeCreated'],
-            updated_on=obj['timeLastModified'],
-            name=obj['name'],
-            email=obj['email'],
-            delegatee_ids=obj['delegatees'],
-            image=obj['image'],
-            country=obj['country']
+            id=obj.get('id'),
+            created_on=obj.get('timeCreated'),
+            updated_on=obj.get('timeLastModified'),
+            name=obj.get('name'),
+            email=obj.get('email'),
+            delegatee_ids=obj.get('delegatees'),
+            image=obj.get('image'),
+            country=obj.get('country')
         )
 
 
@@ -268,19 +268,19 @@ class Worker(object):
     @classmethod
     def parse(self, obj):
         worker = Worker(
-            id=obj['id'],
-            name=obj['name'],
-            phone=obj['phone'],
-            tasks=obj['tasks'],
+            id=obj.get('id'),
+            name=obj.get('name'),
+            phone=obj.get('phone'),
+            tasks=obj.get('tasks'),
         )
 
-        if obj['vehicle']:
+        if 'vehicle' in obj:
             worker.vehicle = Vehicle.parse(obj['vehicle'])
 
         if 'teams' in obj:
             worker.team_ids = obj['teams']
 
-        if obj['activeTask']:
+        if 'activeTask' in obj:
             worker.active_task = obj['activeTask']
 
         if obj.get('delayTime'):

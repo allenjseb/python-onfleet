@@ -208,9 +208,9 @@ class OnfleetCall(object):
                 # returned by their API. In some cases, error_data is a dict
                 # with more information; in other cases, it is just a string.
                 if isinstance(error_data, dict):
-                    error_cause = error_data['cause']
-                    error_code = error_data['error']
-                    error_message = error_data['message']
+                    error_cause = error_data.get('cause')
+                    error_code = error_data.get('error')
+                    error_message = error_data.get('message')
                 elif response.status_code == 429:
                     raise OnfleetRatelimitExceeded(
                         error_data,
