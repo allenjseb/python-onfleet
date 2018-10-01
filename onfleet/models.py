@@ -274,13 +274,13 @@ class Worker(object):
             tasks=obj.get('tasks'),
         )
 
-        if 'vehicle' in obj:
+        if obj.get('vehicle'):
             worker.vehicle = Vehicle.parse(obj['vehicle'])
 
-        if 'teams' in obj:
+        if obj.get('teams'):
             worker.team_ids = obj['teams']
 
-        if 'activeTask' in obj:
+        if obj.get('activeTask'):
             worker.active_task = obj['activeTask']
 
         if obj.get('delayTime'):
