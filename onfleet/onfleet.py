@@ -245,6 +245,10 @@ class OnfleetCall(object):
                         error_cause,
                     )
 
+                print response.status_code
+                print error_message
+                print error_type
+                print error_code
                 raise OnfleetError(error_message, error_type, error_code,
                     error_cause)
 
