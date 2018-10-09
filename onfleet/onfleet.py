@@ -245,6 +245,7 @@ class OnfleetCall(object):
                         error_cause,
                     )
 
+                print json_response
                 print response.status_code
                 print error_message
                 print error_type
