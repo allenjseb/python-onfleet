@@ -104,6 +104,7 @@ class ComplexEncoder(json.JSONEncoder):
                 'complete_after': 'completeAfter',
                 'complete_before': 'completeBefore',
                 'container': 'container',
+                'requirements': 'requirements',
             }
         elif isinstance(obj, models.Recipient):
             payload = {

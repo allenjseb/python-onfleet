@@ -100,7 +100,7 @@ class Task(object):
             id=None, created_on=None, updated_on=None, merchant=None,
             executor=None, pickup_task=False, tracking_url=None, worker=None,
             dependencies=None, container=None, complete_after=None,
-            complete_before=None, delay_time=None):
+            complete_before=None, delay_time=None, requirements=None):
         self.id = id
         self.created_on = created_on
         self.updated_on = updated_on
@@ -117,6 +117,7 @@ class Task(object):
         self.container = container
         self.worker = worker
         self.delay_time = delay_time
+        self.requirements = requirements
 
     def __repr__(self):
         return "<Task id='{}'>".format(self.id)
@@ -137,7 +138,9 @@ class Task(object):
             complete_before=obj['completeBefore'],
             dependencies=obj['dependencies'],
             worker=obj['worker'],
+            requirements=obj['requirements'],
         )
+
         if obj['completeAfter']:
             task.complete_after = utils.from_unix_time(obj['completeAfter'])
 
