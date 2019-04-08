@@ -138,7 +138,7 @@ class Task(object):
             complete_before=obj['completeBefore'],
             dependencies=obj['dependencies'],
             worker=obj['worker'],
-            requirements=obj['requirements'],
+            requirements=obj.get('requirements'),
         )
 
         if obj['completeAfter']:
