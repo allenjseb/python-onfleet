@@ -20,6 +20,12 @@ class MultipleDestinationsError(OnfleetError):
 class OnfleetResourceNotFound(OnfleetError):
     """Error for when onfleet 404s."""
 
+    def __init__(self, *args):
+        super(OnfleetResourceNotFound, self).__init__(*args)
+
 
 class OnfleetRatelimitExceeded(OnfleetError):
     """Error for when Onfleet's ratelimit is encountered."""
+
+    def __init__(self, *args):
+        super(OnfleetRatelimitExceeded, self).__init__(*args)
