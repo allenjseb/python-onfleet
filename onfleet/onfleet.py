@@ -195,8 +195,17 @@ class OnfleetCall(object):
 
         if response.text:
             # If the response is not falsy.
+            try:
+                json_response = response.json()
+            except ValueError:
+                # Raise if we get errors that still produce `.text` data.
+                # i.e. 4xx, 5xx errors in HTML.
+                response.raise_for_status()
 
-            json_response = response.json()
+                # Raise the original exception.
+                # Assuming the status_code is OK, the response is still not
+                # JSON decodable.
+                raise
 
             if 'code' in json_response:
                 # So presumably this is an error response,
