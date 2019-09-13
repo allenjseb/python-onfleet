@@ -96,6 +96,13 @@ class Task(object):
     ACTIVE = 2
     COMPLETED = 3
 
+    STATE_MAPPING = {
+        UNASSIGNED: 'unassigned',
+        ASSIGNED: 'assigned',
+        ACTIVE: 'active',
+        COMPLETED: 'completed',
+    }
+
     def __init__(self, destination, recipients, notes=None, state=None,
             id=None, created_on=None, updated_on=None, merchant=None,
             executor=None, pickup_task=False, tracking_url=None, worker=None,
@@ -118,6 +125,7 @@ class Task(object):
         self.worker = worker
         self.delay_time = delay_time
         self.requirements = requirements
+        self.state = state
 
     def __repr__(self):
         return "<Task id='{}'>".format(self.id)
